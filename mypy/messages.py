@@ -118,18 +118,18 @@ class MessageBuilder:
     # Helpers
     #
 
-    def copy(self) -> 'MessageBuilder':
+    def copy(self) -> "MessageBuilder":
         new = MessageBuilder(self.errors.copy(), self.modules)
         new.disable_count = self.disable_count
         new.disable_type_names = self.disable_type_names
         return new
 
-    def clean_copy(self) -> 'MessageBuilder':
+    def clean_copy(self) -> "MessageBuilder":
         errors = self.errors.copy()
         errors.error_info_map = OrderedDict()
         return MessageBuilder(errors, self.modules)
 
-    def add_errors(self, messages: 'MessageBuilder') -> None:
+    def add_errors(self, messages: "MessageBuilder") -> None:
         """Add errors in messages to this builder."""
         if self.disable_count <= 0:
             for errs in messages.errors.error_info_map.values():
@@ -242,9 +242,9 @@ class MessageBuilder:
 
         if (isinstance(original_type, Instance) and
                 original_type.type.has_readable_member(member)):
-            self.fail('Member "{}" is not assignable'.format(member), context)
+            self.fail("Member "{}" is not assignable".format(member), context)
         elif member == '__contains__':
-            self.fail('Unsupported right operand type for in ({})'.format(
+            self.fail("Unsupported right operand type for in ({})".format(
                 format_type(original_type)), context, code=codes.OPERATOR)
         elif member in op_methods.values():
             # Access to a binary operator member (e.g. _add). This case does
@@ -253,44 +253,44 @@ class MessageBuilder:
                 if method == member:
                     self.unsupported_left_operand(op, original_type, context)
                     break
-        elif member == '__neg__':
-            self.fail('Unsupported operand type for unary - ({})'.format(
+        elif member == "__neg__":
+            self.fail("Unsupported operand type for unary - ({})".format(
                 format_type(original_type)), context, code=codes.OPERATOR)
-        elif member == '__pos__':
-            self.fail('Unsupported operand type for unary + ({})'.format(
+        elif member == "__pos__":
+            self.fail("Unsupported operand type for unary + ({})".format(
                 format_type(original_type)), context, code=codes.OPERATOR)
-        elif member == '__invert__':
-            self.fail('Unsupported operand type for ~ ({})'.format(
+        elif member == "__invert__":
+            self.fail("Unsupported operand type for ~ ({})".format(
                 format_type(original_type)), context, code=codes.OPERATOR)
-        elif member == '__getitem__':
+        elif member == "__getitem__":
             # Indexed get.
             # TODO: Fix this consistently in format_type
             if isinstance(original_type, CallableType) and original_type.is_type_obj():
-                self.fail('The type {} is not generic and not indexable'.format(
+                self.fail("The type {} is not generic and not indexable".format(
                     format_type(original_type)), context)
             else:
-                self.fail('Value of type {} is not indexable'.format(
+                self.fail("Value of type {} is not indexable".format(
                     format_type(original_type)), context, code=codes.INDEX)
-        elif member == '__setitem__':
+        elif member == "__setitem__":
             # Indexed set.
-            self.fail('Unsupported target for indexed assignment ({})'.format(
+            self.fail("Unsupported target for indexed assignment ({})".format(
                 format_type(original_type)), context, code=codes.INDEX)
-        elif member == '__call__':
+        elif member == "__call__":
             if isinstance(original_type, Instance) and \
-                    (original_type.type.fullname == 'builtins.function'):
+                    (original_type.type.fullname == "builtins.function"):
                 # "'function' not callable" is a confusing error message.
                 # Explain that the problem is that the type of the function is not known.
-                self.fail('Cannot call function of unknown type', context, code=codes.OPERATOR)
+                self.fail("Cannot call function of unknown type", context, code=codes.OPERATOR)
             else:
-                self.fail('{} not callable'.format(format_type(original_type)), context,
+                self.fail("{} not callable".format(format_type(original_type)), context,
                           code=codes.OPERATOR)
         else:
             # The non-special case: a missing ordinary attribute.
             extra = ''
-            if member == '__iter__':
-                extra = ' (not iterable)'
-            elif member == '__aiter__':
-                extra = ' (not async iterable)'
+            if member == "__iter__":
+                extra = " (not iterable)"
+            elif member == "__aiter__":
+                extra = " (not async iterable)"
             if not self.disable_type_names:
                 failed = False
                 if isinstance(original_type, Instance) and original_type.type.names:
@@ -306,14 +306,14 @@ class MessageBuilder:
 
                     matches = [m for m in COMMON_MISTAKES.get(member, []) if m in alternatives]
                     matches.extend(best_matches(member, alternatives)[:3])
-                    if member == '__aiter__' and matches == ['__iter__']:
+                    if member == "__aiter__" and matches == ["__iter__"]:
                         matches = []  # Avoid misleading suggestion
-                    if member == '__div__' and matches == ['__truediv__']:
+                    if member == "__div__" and matches == ["__truediv__"]:
                         # TODO: Handle differences in division between Python 2 and 3 more cleanly
                         matches = []
                     if matches:
                         self.fail(
-                            '{} has no attribute "{}"; maybe {}?{}'.format(
+                            "{} has no attribute "{}"; maybe {}?{}".format(
                                 format_type(original_type),
                                 member,
                                 pretty_seq(matches, "or"),
@@ -324,7 +324,7 @@ class MessageBuilder:
                         failed = True
                 if not failed:
                     self.fail(
-                        '{} has no attribute "{}"{}'.format(
+                        "{} has no attribute "{}"{}".format(
                             format_type(original_type), member, extra),
                         context,
                         code=codes.ATTR_DEFINED)
@@ -335,7 +335,7 @@ class MessageBuilder:
                 if typ_format == '"object"' and \
                         any(type(item) == NoneType for item in original_type.items):
                     typ_format = '"None"'
-                self.fail('Item {} of {} has no attribute "{}"{}'.format(
+                self.fail("Item {} of {} has no attribute "{}"{}".format(
                     typ_format, orig_type_format, member, extra), context,
                     code=codes.UNION_ATTR)
         return AnyType(TypeOfAny.from_error)
@@ -351,41 +351,41 @@ class MessageBuilder:
 
         Types can be Type objects or strings.
         """
-        left_str = ''
+        left_str = ""
         if isinstance(left_type, str):
             left_str = left_type
         else:
             left_str = format_type(left_type)
 
-        right_str = ''
+        right_str = ""
         if isinstance(right_type, str):
             right_str = right_type
         else:
             right_str = format_type(right_type)
 
         if self.disable_type_names:
-            msg = 'Unsupported operand types for {} (likely involving Union)'.format(op)
+            msg = "Unsupported operand types for {} (likely involving Union)".format(op)
         else:
-            msg = 'Unsupported operand types for {} ({} and {})'.format(
+            msg = "Unsupported operand types for {} ({} and {})".format(
                 op, left_str, right_str)
         self.fail(msg, context, code=code)
 
     def unsupported_left_operand(self, op: str, typ: Type,
                                  context: Context) -> None:
         if self.disable_type_names:
-            msg = 'Unsupported left operand type for {} (some union)'.format(op)
+            msg = "Unsupported left operand type for {} (some union)".format(op)
         else:
-            msg = 'Unsupported left operand type for {} ({})'.format(
+            msg = "Unsupported left operand type for {} ({})".format(
                 op, format_type(typ))
         self.fail(msg, context, code=codes.OPERATOR)
 
     def not_callable(self, typ: Type, context: Context) -> Type:
-        self.fail('{} not callable'.format(format_type(typ)), context)
+        self.fail("{} not callable".format(format_type(typ)), context)
         return AnyType(TypeOfAny.from_error)
 
     def untyped_function_call(self, callee: CallableType, context: Context) -> Type:
-        name = callable_name(callee) or '(unknown)'
-        self.fail('Call to untyped function {} in typed context'.format(name), context,
+        name = callable_name(callee) or "(unknown)"
+        self.fail("Call to untyped function {} in typed context".format(name), context,
                   code=codes.NO_UNTYPED_CALL)
         return AnyType(TypeOfAny.from_error)
 
@@ -409,7 +409,7 @@ class MessageBuilder:
         """
         arg_type = get_proper_type(arg_type)
 
-        target = ''
+        target = ""
         callee_name = callable_name(callee)
         if callee_name is not None:
             name = callee_name
@@ -419,7 +419,7 @@ class MessageBuilder:
                 base = extract_type(name)
 
             for method, op in op_methods_to_symbols.items():
-                for variant in method, '__r' + method[2:]:
+                for variant in method, "__r" + method[2:]:
                     # FIX: do not rely on textual formatting
                     if name.startswith('"{}" of'.format(variant)):
                         if op == 'in' or variant != method:
@@ -431,7 +431,7 @@ class MessageBuilder:
                                                            context, code=codes.OPERATOR)
                         return codes.OPERATOR
 
-            if name.startswith('"__cmp__" of'):
+            if name.startswith("__cmp__" of'):
                 self.unsupported_operand_types("comparison", arg_type, base,
                                                context, code=codes.OPERATOR)
                 return codes.INDEX
@@ -447,7 +447,7 @@ class MessageBuilder:
                                             code=codes.INDEX)
                     return codes.INDEX
                 else:
-                    msg = '{} (expression has type {}, target has type {})'
+                    msg = "{} (expression has type {}, target has type {})"
                     arg_type_str, callee_type_str = format_type_distinctly(arg_type,
                                                                            callee.arg_types[n - 1])
                     self.fail(msg.format(message_registry.INCOMPATIBLE_TYPES_IN_ASSIGNMENT,
@@ -455,20 +455,20 @@ class MessageBuilder:
                               context, code=codes.ASSIGNMENT)
                     return codes.ASSIGNMENT
 
-            target = 'to {} '.format(name)
+            target = "to {} ".format(name)
 
-        msg = ''
+        msg = ""
         code = codes.MISC
         notes = []  # type: List[str]
-        if callee_name == '<list>':
+        if callee_name == "<list>":
             name = callee_name[1:-1]
             n -= 1
             actual_type_str, expected_type_str = format_type_distinctly(arg_type,
                                                                         callee.arg_types[0])
-            msg = '{} item {} has incompatible type {}; expected {}'.format(
+            msg = "{} item {} has incompatible type {}; expected {}".format(
                 name.title(), n, actual_type_str, expected_type_str)
             code = codes.LIST_ITEM
-        elif callee_name == '<dict>':
+        elif callee_name == "<dict>":
             name = callee_name[1:-1]
             n -= 1
             key_type, value_type = cast(TupleType, arg_type).items
@@ -488,15 +488,15 @@ class MessageBuilder:
                 value_type_str, expected_value_type_str = format_type_distinctly(
                     value_type, expected_value_type)
 
-            msg = '{} entry {} has incompatible type {}: {}; expected {}: {}'.format(
+            msg = "{} entry {} has incompatible type {}: {}; expected {}: {}".format(
                 name.title(), n, key_type_str, value_type_str,
                 expected_key_type_str, expected_value_type_str)
             code = codes.DICT_ITEM
-        elif callee_name == '<list-comprehension>':
+        elif callee_name == "<list-comprehension>":
             actual_type_str, expected_type_str = map(strip_quotes,
                                                      format_type_distinctly(arg_type,
                                                                             callee.arg_types[0]))
-            msg = 'List comprehension has incompatible type List[{}]; expected List[{}]'.format(
+            msg = "List comprehension has incompatible type List[{}]; expected List[{}]".format(
                 actual_type_str, expected_type_str)
         elif callee_name == '<set-comprehension>':
             actual_type_str, expected_type_str = map(strip_quotes,
